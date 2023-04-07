@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/khang00/health/internal/route"
+	"github.com/khang00/health/internal/store"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"net/http"
@@ -16,6 +18,12 @@ func main() {
 
 	// Set log level
 	e.Logger.SetLevel(log.INFO)
+
+	// Set up storage
+	storeClient := store.NewStoreClient()
+
+	// Setup Route
+	route.SetUpRoutes(e, storeClient)
 
 	// Start server
 	go func() {
