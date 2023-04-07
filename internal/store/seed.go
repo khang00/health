@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/schema"
 	"github.com/khang00/health/ent"
+	"time"
 )
 
 func seedData(ctx context.Context, client *ent.Client) error {
@@ -19,19 +20,55 @@ func seedData(ctx context.Context, client *ent.Client) error {
 		return err
 	}
 
+	now := time.Now()
 	err = client.Meal.CreateBulk(
 		client.Meal.Create().
 			SetUserID(1).
-			SetMealType("morning"),
+			SetMealType("morning").
+			SetCreatedAt(now.Add(-time.Hour*4)),
 		client.Meal.Create().
 			SetUserID(1).
-			SetMealType("lunch"),
+			SetMealType("lunch").
+			SetCreatedAt(now.Add(-time.Hour*8)),
 		client.Meal.Create().
 			SetUserID(1).
-			SetMealType("dinner"),
+			SetMealType("dinner").
+			SetCreatedAt(now.Add(-time.Hour*12)),
 		client.Meal.Create().
 			SetUserID(1).
-			SetMealType("breakfast"),
+			SetMealType("breakfast").
+			SetCreatedAt(now.Add(-time.Hour*16)),
+	).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = client.BFPDataPoint.CreateBulk(
+		client.BFPDataPoint.Create().
+			SetUserID(1).
+			SetFatPercentage(0.45).
+			SetTotalWeight(60).
+			SetCreatedAt(now.Add(-time.Hour*24*1)),
+		client.BFPDataPoint.Create().
+			SetUserID(1).
+			SetFatPercentage(0.55).
+			SetTotalWeight(60).
+			SetCreatedAt(now.Add(-time.Hour*24*2)),
+		client.BFPDataPoint.Create().
+			SetUserID(1).
+			SetFatPercentage(0.65).
+			SetTotalWeight(60).
+			SetCreatedAt(now.Add(-time.Hour*24*3)),
+		client.BFPDataPoint.Create().
+			SetUserID(1).
+			SetFatPercentage(0.60).
+			SetTotalWeight(60).
+			SetCreatedAt(now.Add(-time.Hour*24*4)),
+		client.BFPDataPoint.Create().
+			SetUserID(1).
+			SetFatPercentage(0.75).
+			SetTotalWeight(60).
+			SetCreatedAt(now.Add(-time.Hour*24*5)),
 	).Exec(ctx)
 	if err != nil {
 		return err
