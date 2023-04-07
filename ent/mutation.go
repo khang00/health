@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/predicate"
 	"github.com/khang00/health/ent/user"
@@ -25,9 +26,580 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeMeal = "Meal"
-	TypeUser = "User"
+	TypeBFPDataPoint = "BFPDataPoint"
+	TypeMeal         = "Meal"
+	TypeUser         = "User"
 )
+
+// BFPDataPointMutation represents an operation that mutates the BFPDataPoint nodes in the graph.
+type BFPDataPointMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	fat_percentage    *float64
+	addfat_percentage *float64
+	total_weight      *int
+	addtotal_weight   *int
+	created_at        *time.Time
+	clearedFields     map[string]struct{}
+	user              *int
+	cleareduser       bool
+	done              bool
+	oldValue          func(context.Context) (*BFPDataPoint, error)
+	predicates        []predicate.BFPDataPoint
+}
+
+var _ ent.Mutation = (*BFPDataPointMutation)(nil)
+
+// bfpdatapointOption allows management of the mutation configuration using functional options.
+type bfpdatapointOption func(*BFPDataPointMutation)
+
+// newBFPDataPointMutation creates new mutation for the BFPDataPoint entity.
+func newBFPDataPointMutation(c config, op Op, opts ...bfpdatapointOption) *BFPDataPointMutation {
+	m := &BFPDataPointMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeBFPDataPoint,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withBFPDataPointID sets the ID field of the mutation.
+func withBFPDataPointID(id int) bfpdatapointOption {
+	return func(m *BFPDataPointMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *BFPDataPoint
+		)
+		m.oldValue = func(ctx context.Context) (*BFPDataPoint, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().BFPDataPoint.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withBFPDataPoint sets the old BFPDataPoint of the mutation.
+func withBFPDataPoint(node *BFPDataPoint) bfpdatapointOption {
+	return func(m *BFPDataPointMutation) {
+		m.oldValue = func(context.Context) (*BFPDataPoint, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m BFPDataPointMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m BFPDataPointMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *BFPDataPointMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *BFPDataPointMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().BFPDataPoint.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFatPercentage sets the "fat_percentage" field.
+func (m *BFPDataPointMutation) SetFatPercentage(f float64) {
+	m.fat_percentage = &f
+	m.addfat_percentage = nil
+}
+
+// FatPercentage returns the value of the "fat_percentage" field in the mutation.
+func (m *BFPDataPointMutation) FatPercentage() (r float64, exists bool) {
+	v := m.fat_percentage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFatPercentage returns the old "fat_percentage" field's value of the BFPDataPoint entity.
+// If the BFPDataPoint object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BFPDataPointMutation) OldFatPercentage(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFatPercentage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFatPercentage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFatPercentage: %w", err)
+	}
+	return oldValue.FatPercentage, nil
+}
+
+// AddFatPercentage adds f to the "fat_percentage" field.
+func (m *BFPDataPointMutation) AddFatPercentage(f float64) {
+	if m.addfat_percentage != nil {
+		*m.addfat_percentage += f
+	} else {
+		m.addfat_percentage = &f
+	}
+}
+
+// AddedFatPercentage returns the value that was added to the "fat_percentage" field in this mutation.
+func (m *BFPDataPointMutation) AddedFatPercentage() (r float64, exists bool) {
+	v := m.addfat_percentage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFatPercentage resets all changes to the "fat_percentage" field.
+func (m *BFPDataPointMutation) ResetFatPercentage() {
+	m.fat_percentage = nil
+	m.addfat_percentage = nil
+}
+
+// SetTotalWeight sets the "total_weight" field.
+func (m *BFPDataPointMutation) SetTotalWeight(i int) {
+	m.total_weight = &i
+	m.addtotal_weight = nil
+}
+
+// TotalWeight returns the value of the "total_weight" field in the mutation.
+func (m *BFPDataPointMutation) TotalWeight() (r int, exists bool) {
+	v := m.total_weight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalWeight returns the old "total_weight" field's value of the BFPDataPoint entity.
+// If the BFPDataPoint object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BFPDataPointMutation) OldTotalWeight(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalWeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalWeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalWeight: %w", err)
+	}
+	return oldValue.TotalWeight, nil
+}
+
+// AddTotalWeight adds i to the "total_weight" field.
+func (m *BFPDataPointMutation) AddTotalWeight(i int) {
+	if m.addtotal_weight != nil {
+		*m.addtotal_weight += i
+	} else {
+		m.addtotal_weight = &i
+	}
+}
+
+// AddedTotalWeight returns the value that was added to the "total_weight" field in this mutation.
+func (m *BFPDataPointMutation) AddedTotalWeight() (r int, exists bool) {
+	v := m.addtotal_weight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalWeight resets all changes to the "total_weight" field.
+func (m *BFPDataPointMutation) ResetTotalWeight() {
+	m.total_weight = nil
+	m.addtotal_weight = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *BFPDataPointMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *BFPDataPointMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the BFPDataPoint entity.
+// If the BFPDataPoint object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BFPDataPointMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *BFPDataPointMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *BFPDataPointMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *BFPDataPointMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *BFPDataPointMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *BFPDataPointMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *BFPDataPointMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *BFPDataPointMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the BFPDataPointMutation builder.
+func (m *BFPDataPointMutation) Where(ps ...predicate.BFPDataPoint) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the BFPDataPointMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *BFPDataPointMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.BFPDataPoint, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *BFPDataPointMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *BFPDataPointMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (BFPDataPoint).
+func (m *BFPDataPointMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *BFPDataPointMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.fat_percentage != nil {
+		fields = append(fields, bfpdatapoint.FieldFatPercentage)
+	}
+	if m.total_weight != nil {
+		fields = append(fields, bfpdatapoint.FieldTotalWeight)
+	}
+	if m.created_at != nil {
+		fields = append(fields, bfpdatapoint.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *BFPDataPointMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case bfpdatapoint.FieldFatPercentage:
+		return m.FatPercentage()
+	case bfpdatapoint.FieldTotalWeight:
+		return m.TotalWeight()
+	case bfpdatapoint.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *BFPDataPointMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case bfpdatapoint.FieldFatPercentage:
+		return m.OldFatPercentage(ctx)
+	case bfpdatapoint.FieldTotalWeight:
+		return m.OldTotalWeight(ctx)
+	case bfpdatapoint.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown BFPDataPoint field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BFPDataPointMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case bfpdatapoint.FieldFatPercentage:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFatPercentage(v)
+		return nil
+	case bfpdatapoint.FieldTotalWeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalWeight(v)
+		return nil
+	case bfpdatapoint.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BFPDataPoint field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *BFPDataPointMutation) AddedFields() []string {
+	var fields []string
+	if m.addfat_percentage != nil {
+		fields = append(fields, bfpdatapoint.FieldFatPercentage)
+	}
+	if m.addtotal_weight != nil {
+		fields = append(fields, bfpdatapoint.FieldTotalWeight)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *BFPDataPointMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case bfpdatapoint.FieldFatPercentage:
+		return m.AddedFatPercentage()
+	case bfpdatapoint.FieldTotalWeight:
+		return m.AddedTotalWeight()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BFPDataPointMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case bfpdatapoint.FieldFatPercentage:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFatPercentage(v)
+		return nil
+	case bfpdatapoint.FieldTotalWeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalWeight(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BFPDataPoint numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *BFPDataPointMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *BFPDataPointMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *BFPDataPointMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown BFPDataPoint nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *BFPDataPointMutation) ResetField(name string) error {
+	switch name {
+	case bfpdatapoint.FieldFatPercentage:
+		m.ResetFatPercentage()
+		return nil
+	case bfpdatapoint.FieldTotalWeight:
+		m.ResetTotalWeight()
+		return nil
+	case bfpdatapoint.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown BFPDataPoint field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *BFPDataPointMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, bfpdatapoint.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *BFPDataPointMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case bfpdatapoint.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *BFPDataPointMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *BFPDataPointMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *BFPDataPointMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, bfpdatapoint.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *BFPDataPointMutation) EdgeCleared(name string) bool {
+	switch name {
+	case bfpdatapoint.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *BFPDataPointMutation) ClearEdge(name string) error {
+	switch name {
+	case bfpdatapoint.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown BFPDataPoint unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *BFPDataPointMutation) ResetEdge(name string) error {
+	switch name {
+	case bfpdatapoint.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown BFPDataPoint edge %s", name)
+}
 
 // MealMutation represents an operation that mutates the Meal nodes in the graph.
 type MealMutation struct {
@@ -542,6 +1114,9 @@ type UserMutation struct {
 	meals         map[int]struct{}
 	removedmeals  map[int]struct{}
 	clearedmeals  bool
+	_BFPs         map[int]struct{}
+	removed_BFPs  map[int]struct{}
+	cleared_BFPs  bool
 	done          bool
 	oldValue      func(context.Context) (*User, error)
 	predicates    []predicate.User
@@ -771,6 +1346,60 @@ func (m *UserMutation) ResetMeals() {
 	m.removedmeals = nil
 }
 
+// AddBFPIDs adds the "BFPs" edge to the BFPDataPoint entity by ids.
+func (m *UserMutation) AddBFPIDs(ids ...int) {
+	if m._BFPs == nil {
+		m._BFPs = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._BFPs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearBFPs clears the "BFPs" edge to the BFPDataPoint entity.
+func (m *UserMutation) ClearBFPs() {
+	m.cleared_BFPs = true
+}
+
+// BFPsCleared reports if the "BFPs" edge to the BFPDataPoint entity was cleared.
+func (m *UserMutation) BFPsCleared() bool {
+	return m.cleared_BFPs
+}
+
+// RemoveBFPIDs removes the "BFPs" edge to the BFPDataPoint entity by IDs.
+func (m *UserMutation) RemoveBFPIDs(ids ...int) {
+	if m.removed_BFPs == nil {
+		m.removed_BFPs = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m._BFPs, ids[i])
+		m.removed_BFPs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedBFPs returns the removed IDs of the "BFPs" edge to the BFPDataPoint entity.
+func (m *UserMutation) RemovedBFPsIDs() (ids []int) {
+	for id := range m.removed_BFPs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// BFPsIDs returns the "BFPs" edge IDs in the mutation.
+func (m *UserMutation) BFPsIDs() (ids []int) {
+	for id := range m._BFPs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetBFPs resets all changes to the "BFPs" edge.
+func (m *UserMutation) ResetBFPs() {
+	m._BFPs = nil
+	m.cleared_BFPs = false
+	m.removed_BFPs = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -921,9 +1550,12 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.meals != nil {
 		edges = append(edges, user.EdgeMeals)
+	}
+	if m._BFPs != nil {
+		edges = append(edges, user.EdgeBFPs)
 	}
 	return edges
 }
@@ -938,15 +1570,24 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeBFPs:
+		ids := make([]ent.Value, 0, len(m._BFPs))
+		for id := range m._BFPs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedmeals != nil {
 		edges = append(edges, user.EdgeMeals)
+	}
+	if m.removed_BFPs != nil {
+		edges = append(edges, user.EdgeBFPs)
 	}
 	return edges
 }
@@ -961,15 +1602,24 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeBFPs:
+		ids := make([]ent.Value, 0, len(m.removed_BFPs))
+		for id := range m.removed_BFPs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedmeals {
 		edges = append(edges, user.EdgeMeals)
+	}
+	if m.cleared_BFPs {
+		edges = append(edges, user.EdgeBFPs)
 	}
 	return edges
 }
@@ -980,6 +1630,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeMeals:
 		return m.clearedmeals
+	case user.EdgeBFPs:
+		return m.cleared_BFPs
 	}
 	return false
 }
@@ -998,6 +1650,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeMeals:
 		m.ResetMeals()
+		return nil
+	case user.EdgeBFPs:
+		m.ResetBFPs()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

@@ -9,6 +9,18 @@ import (
 	"github.com/khang00/health/ent"
 )
 
+// The BFPDataPointFunc type is an adapter to allow the use of ordinary
+// function as BFPDataPoint mutator.
+type BFPDataPointFunc func(context.Context, *ent.BFPDataPointMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BFPDataPointFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BFPDataPointMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BFPDataPointMutation", m)
+}
+
 // The MealFunc type is an adapter to allow the use of ordinary
 // function as Meal mutator.
 type MealFunc func(context.Context, *ent.MealMutation) (ent.Value, error)

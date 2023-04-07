@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/schema"
 )
@@ -13,6 +14,20 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	bfpdatapointFields := schema.BFPDataPoint{}.Fields()
+	_ = bfpdatapointFields
+	// bfpdatapointDescFatPercentage is the schema descriptor for fat_percentage field.
+	bfpdatapointDescFatPercentage := bfpdatapointFields[0].Descriptor()
+	// bfpdatapoint.FatPercentageValidator is a validator for the "fat_percentage" field. It is called by the builders before save.
+	bfpdatapoint.FatPercentageValidator = bfpdatapointDescFatPercentage.Validators[0].(func(float64) error)
+	// bfpdatapointDescTotalWeight is the schema descriptor for total_weight field.
+	bfpdatapointDescTotalWeight := bfpdatapointFields[1].Descriptor()
+	// bfpdatapoint.TotalWeightValidator is a validator for the "total_weight" field. It is called by the builders before save.
+	bfpdatapoint.TotalWeightValidator = bfpdatapointDescTotalWeight.Validators[0].(func(int) error)
+	// bfpdatapointDescCreatedAt is the schema descriptor for created_at field.
+	bfpdatapointDescCreatedAt := bfpdatapointFields[2].Descriptor()
+	// bfpdatapoint.DefaultCreatedAt holds the default value on creation for the created_at field.
+	bfpdatapoint.DefaultCreatedAt = bfpdatapointDescCreatedAt.Default.(time.Time)
 	mealFields := schema.Meal{}.Fields()
 	_ = mealFields
 	// mealDescMealType is the schema descriptor for meal_type field.

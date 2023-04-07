@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/predicate"
 	"github.com/khang00/health/ent/user"
@@ -55,6 +56,21 @@ func (uu *UserUpdate) AddMeals(m ...*Meal) *UserUpdate {
 	return uu.AddMealIDs(ids...)
 }
 
+// AddBFPIDs adds the "BFPs" edge to the BFPDataPoint entity by IDs.
+func (uu *UserUpdate) AddBFPIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddBFPIDs(ids...)
+	return uu
+}
+
+// AddBFPs adds the "BFPs" edges to the BFPDataPoint entity.
+func (uu *UserUpdate) AddBFPs(b ...*BFPDataPoint) *UserUpdate {
+	ids := make([]int, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return uu.AddBFPIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -79,6 +95,27 @@ func (uu *UserUpdate) RemoveMeals(m ...*Meal) *UserUpdate {
 		ids[i] = m[i].ID
 	}
 	return uu.RemoveMealIDs(ids...)
+}
+
+// ClearBFPs clears all "BFPs" edges to the BFPDataPoint entity.
+func (uu *UserUpdate) ClearBFPs() *UserUpdate {
+	uu.mutation.ClearBFPs()
+	return uu
+}
+
+// RemoveBFPIDs removes the "BFPs" edge to BFPDataPoint entities by IDs.
+func (uu *UserUpdate) RemoveBFPIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveBFPIDs(ids...)
+	return uu
+}
+
+// RemoveBFPs removes "BFPs" edges to BFPDataPoint entities.
+func (uu *UserUpdate) RemoveBFPs(b ...*BFPDataPoint) *UserUpdate {
+	ids := make([]int, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return uu.RemoveBFPIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -168,6 +205,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.BFPsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BFPsTable,
+			Columns: []string{user.BFPsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bfpdatapoint.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedBFPsIDs(); len(nodes) > 0 && !uu.mutation.BFPsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BFPsTable,
+			Columns: []string{user.BFPsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bfpdatapoint.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.BFPsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BFPsTable,
+			Columns: []string{user.BFPsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bfpdatapoint.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -215,6 +297,21 @@ func (uuo *UserUpdateOne) AddMeals(m ...*Meal) *UserUpdateOne {
 	return uuo.AddMealIDs(ids...)
 }
 
+// AddBFPIDs adds the "BFPs" edge to the BFPDataPoint entity by IDs.
+func (uuo *UserUpdateOne) AddBFPIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddBFPIDs(ids...)
+	return uuo
+}
+
+// AddBFPs adds the "BFPs" edges to the BFPDataPoint entity.
+func (uuo *UserUpdateOne) AddBFPs(b ...*BFPDataPoint) *UserUpdateOne {
+	ids := make([]int, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return uuo.AddBFPIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -239,6 +336,27 @@ func (uuo *UserUpdateOne) RemoveMeals(m ...*Meal) *UserUpdateOne {
 		ids[i] = m[i].ID
 	}
 	return uuo.RemoveMealIDs(ids...)
+}
+
+// ClearBFPs clears all "BFPs" edges to the BFPDataPoint entity.
+func (uuo *UserUpdateOne) ClearBFPs() *UserUpdateOne {
+	uuo.mutation.ClearBFPs()
+	return uuo
+}
+
+// RemoveBFPIDs removes the "BFPs" edge to BFPDataPoint entities by IDs.
+func (uuo *UserUpdateOne) RemoveBFPIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveBFPIDs(ids...)
+	return uuo
+}
+
+// RemoveBFPs removes "BFPs" edges to BFPDataPoint entities.
+func (uuo *UserUpdateOne) RemoveBFPs(b ...*BFPDataPoint) *UserUpdateOne {
+	ids := make([]int, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return uuo.RemoveBFPIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -351,6 +469,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(meal.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.BFPsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BFPsTable,
+			Columns: []string{user.BFPsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bfpdatapoint.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedBFPsIDs(); len(nodes) > 0 && !uuo.mutation.BFPsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BFPsTable,
+			Columns: []string{user.BFPsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bfpdatapoint.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.BFPsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BFPsTable,
+			Columns: []string{user.BFPsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bfpdatapoint.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

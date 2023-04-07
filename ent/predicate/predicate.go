@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// BFPDataPoint is the predicate function for bfpdatapoint builders.
+type BFPDataPoint func(*sql.Selector)
+
 // Meal is the predicate function for meal builders.
 type Meal func(*sql.Selector)
 

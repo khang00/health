@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/user"
 )
@@ -45,6 +46,21 @@ func (uc *UserCreate) AddMeals(m ...*Meal) *UserCreate {
 		ids[i] = m[i].ID
 	}
 	return uc.AddMealIDs(ids...)
+}
+
+// AddBFPIDs adds the "BFPs" edge to the BFPDataPoint entity by IDs.
+func (uc *UserCreate) AddBFPIDs(ids ...int) *UserCreate {
+	uc.mutation.AddBFPIDs(ids...)
+	return uc
+}
+
+// AddBFPs adds the "BFPs" edges to the BFPDataPoint entity.
+func (uc *UserCreate) AddBFPs(b ...*BFPDataPoint) *UserCreate {
+	ids := make([]int, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return uc.AddBFPIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -130,6 +146,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(meal.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.BFPsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BFPsTable,
+			Columns: []string{user.BFPsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(bfpdatapoint.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/user"
 )
@@ -23,6 +24,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// BFPDataPoint is the client for interacting with the BFPDataPoint builders.
+	BFPDataPoint *BFPDataPointClient
 	// Meal is the client for interacting with the Meal builders.
 	Meal *MealClient
 	// User is the client for interacting with the User builders.
@@ -40,6 +43,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.BFPDataPoint = NewBFPDataPointClient(c.config)
 	c.Meal = NewMealClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -122,10 +126,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Meal:   NewMealClient(cfg),
-		User:   NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		BFPDataPoint: NewBFPDataPointClient(cfg),
+		Meal:         NewMealClient(cfg),
+		User:         NewUserClient(cfg),
 	}, nil
 }
 
@@ -143,17 +148,18 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Meal:   NewMealClient(cfg),
-		User:   NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		BFPDataPoint: NewBFPDataPointClient(cfg),
+		Meal:         NewMealClient(cfg),
+		User:         NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Meal.
+//		BFPDataPoint.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -175,6 +181,7 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.BFPDataPoint.Use(hooks...)
 	c.Meal.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -182,6 +189,7 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.BFPDataPoint.Intercept(interceptors...)
 	c.Meal.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
@@ -189,12 +197,148 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *BFPDataPointMutation:
+		return c.BFPDataPoint.mutate(ctx, m)
 	case *MealMutation:
 		return c.Meal.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// BFPDataPointClient is a client for the BFPDataPoint schema.
+type BFPDataPointClient struct {
+	config
+}
+
+// NewBFPDataPointClient returns a client for the BFPDataPoint from the given config.
+func NewBFPDataPointClient(c config) *BFPDataPointClient {
+	return &BFPDataPointClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `bfpdatapoint.Hooks(f(g(h())))`.
+func (c *BFPDataPointClient) Use(hooks ...Hook) {
+	c.hooks.BFPDataPoint = append(c.hooks.BFPDataPoint, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `bfpdatapoint.Intercept(f(g(h())))`.
+func (c *BFPDataPointClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BFPDataPoint = append(c.inters.BFPDataPoint, interceptors...)
+}
+
+// Create returns a builder for creating a BFPDataPoint entity.
+func (c *BFPDataPointClient) Create() *BFPDataPointCreate {
+	mutation := newBFPDataPointMutation(c.config, OpCreate)
+	return &BFPDataPointCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BFPDataPoint entities.
+func (c *BFPDataPointClient) CreateBulk(builders ...*BFPDataPointCreate) *BFPDataPointCreateBulk {
+	return &BFPDataPointCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BFPDataPoint.
+func (c *BFPDataPointClient) Update() *BFPDataPointUpdate {
+	mutation := newBFPDataPointMutation(c.config, OpUpdate)
+	return &BFPDataPointUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BFPDataPointClient) UpdateOne(bdp *BFPDataPoint) *BFPDataPointUpdateOne {
+	mutation := newBFPDataPointMutation(c.config, OpUpdateOne, withBFPDataPoint(bdp))
+	return &BFPDataPointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BFPDataPointClient) UpdateOneID(id int) *BFPDataPointUpdateOne {
+	mutation := newBFPDataPointMutation(c.config, OpUpdateOne, withBFPDataPointID(id))
+	return &BFPDataPointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BFPDataPoint.
+func (c *BFPDataPointClient) Delete() *BFPDataPointDelete {
+	mutation := newBFPDataPointMutation(c.config, OpDelete)
+	return &BFPDataPointDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BFPDataPointClient) DeleteOne(bdp *BFPDataPoint) *BFPDataPointDeleteOne {
+	return c.DeleteOneID(bdp.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BFPDataPointClient) DeleteOneID(id int) *BFPDataPointDeleteOne {
+	builder := c.Delete().Where(bfpdatapoint.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BFPDataPointDeleteOne{builder}
+}
+
+// Query returns a query builder for BFPDataPoint.
+func (c *BFPDataPointClient) Query() *BFPDataPointQuery {
+	return &BFPDataPointQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBFPDataPoint},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a BFPDataPoint entity by its id.
+func (c *BFPDataPointClient) Get(ctx context.Context, id int) (*BFPDataPoint, error) {
+	return c.Query().Where(bfpdatapoint.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BFPDataPointClient) GetX(ctx context.Context, id int) *BFPDataPoint {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a BFPDataPoint.
+func (c *BFPDataPointClient) QueryUser(bdp *BFPDataPoint) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := bdp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(bfpdatapoint.Table, bfpdatapoint.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, bfpdatapoint.UserTable, bfpdatapoint.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(bdp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *BFPDataPointClient) Hooks() []Hook {
+	return c.hooks.BFPDataPoint
+}
+
+// Interceptors returns the client interceptors.
+func (c *BFPDataPointClient) Interceptors() []Interceptor {
+	return c.inters.BFPDataPoint
+}
+
+func (c *BFPDataPointClient) mutate(ctx context.Context, m *BFPDataPointMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BFPDataPointCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BFPDataPointUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BFPDataPointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BFPDataPointDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown BFPDataPoint mutation op: %q", m.Op())
 	}
 }
 
@@ -441,6 +585,22 @@ func (c *UserClient) QueryMeals(u *User) *MealQuery {
 	return query
 }
 
+// QueryBFPs queries the BFPs edge of a User.
+func (c *UserClient) QueryBFPs(u *User) *BFPDataPointQuery {
+	query := (&BFPDataPointClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(bfpdatapoint.Table, bfpdatapoint.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.BFPsTable, user.BFPsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -469,9 +629,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Meal, User []ent.Hook
+		BFPDataPoint, Meal, User []ent.Hook
 	}
 	inters struct {
-		Meal, User []ent.Interceptor
+		BFPDataPoint, Meal, User []ent.Interceptor
 	}
 )

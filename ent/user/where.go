@@ -220,6 +220,33 @@ func HasMealsWith(preds ...predicate.Meal) predicate.User {
 	})
 }
 
+// HasBFPs applies the HasEdge predicate on the "BFPs" edge.
+func HasBFPs() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, BFPsTable, BFPsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasBFPsWith applies the HasEdge predicate on the "BFPs" edge with a given conditions (other predicates).
+func HasBFPsWith(preds ...predicate.BFPDataPoint) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(BFPsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, BFPsTable, BFPsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

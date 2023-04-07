@@ -13,6 +13,8 @@ const (
 	FieldPassword = "password"
 	// EdgeMeals holds the string denoting the meals edge name in mutations.
 	EdgeMeals = "meals"
+	// EdgeBFPs holds the string denoting the bfps edge name in mutations.
+	EdgeBFPs = "BFPs"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MealsTable is the table that holds the meals relation/edge.
@@ -22,6 +24,13 @@ const (
 	MealsInverseTable = "meals"
 	// MealsColumn is the table column denoting the meals relation/edge.
 	MealsColumn = "user_meals"
+	// BFPsTable is the table that holds the BFPs relation/edge.
+	BFPsTable = "bfp_data_points"
+	// BFPsInverseTable is the table name for the BFPDataPoint entity.
+	// It exists in this package in order to avoid circular dependency with the "bfpdatapoint" package.
+	BFPsInverseTable = "bfp_data_points"
+	// BFPsColumn is the table column denoting the BFPs relation/edge.
+	BFPsColumn = "user_bf_ps"
 )
 
 // Columns holds all SQL columns for user fields.

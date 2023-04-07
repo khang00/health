@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/predicate"
 	"github.com/khang00/health/ent/user"
@@ -24,6 +25,7 @@ type UserQuery struct {
 	inters     []Interceptor
 	predicates []predicate.User
 	withMeals  *MealQuery
+	withBFPs   *BFPDataPointQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -75,6 +77,28 @@ func (uq *UserQuery) QueryMeals() *MealQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(meal.Table, meal.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.MealsTable, user.MealsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryBFPs chains the current query on the "BFPs" edge.
+func (uq *UserQuery) QueryBFPs() *BFPDataPointQuery {
+	query := (&BFPDataPointClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(bfpdatapoint.Table, bfpdatapoint.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.BFPsTable, user.BFPsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -275,6 +299,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		inters:     append([]Interceptor{}, uq.inters...),
 		predicates: append([]predicate.User{}, uq.predicates...),
 		withMeals:  uq.withMeals.Clone(),
+		withBFPs:   uq.withBFPs.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -289,6 +314,17 @@ func (uq *UserQuery) WithMeals(opts ...func(*MealQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withMeals = query
+	return uq
+}
+
+// WithBFPs tells the query-builder to eager-load the nodes that are connected to
+// the "BFPs" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithBFPs(opts ...func(*BFPDataPointQuery)) *UserQuery {
+	query := (&BFPDataPointClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withBFPs = query
 	return uq
 }
 
@@ -370,8 +406,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			uq.withMeals != nil,
+			uq.withBFPs != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -396,6 +433,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadMeals(ctx, query, nodes,
 			func(n *User) { n.Edges.Meals = []*Meal{} },
 			func(n *User, e *Meal) { n.Edges.Meals = append(n.Edges.Meals, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withBFPs; query != nil {
+		if err := uq.loadBFPs(ctx, query, nodes,
+			func(n *User) { n.Edges.BFPs = []*BFPDataPoint{} },
+			func(n *User, e *BFPDataPoint) { n.Edges.BFPs = append(n.Edges.BFPs, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -428,6 +472,37 @@ func (uq *UserQuery) loadMeals(ctx context.Context, query *MealQuery, nodes []*U
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "user_meals" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadBFPs(ctx context.Context, query *BFPDataPointQuery, nodes []*User, init func(*User), assign func(*User, *BFPDataPoint)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.BFPDataPoint(func(s *sql.Selector) {
+		s.Where(sql.InValues(user.BFPsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_bf_ps
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_bf_ps" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_bf_ps" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

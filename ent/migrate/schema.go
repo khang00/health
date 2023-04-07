@@ -8,6 +8,28 @@ import (
 )
 
 var (
+	// BfpDataPointsColumns holds the columns for the "bfp_data_points" table.
+	BfpDataPointsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "fat_percentage", Type: field.TypeFloat64},
+		{Name: "total_weight", Type: field.TypeInt},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "user_bf_ps", Type: field.TypeInt, Nullable: true},
+	}
+	// BfpDataPointsTable holds the schema information for the "bfp_data_points" table.
+	BfpDataPointsTable = &schema.Table{
+		Name:       "bfp_data_points",
+		Columns:    BfpDataPointsColumns,
+		PrimaryKey: []*schema.Column{BfpDataPointsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "bfp_data_points_users_BFPs",
+				Columns:    []*schema.Column{BfpDataPointsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// MealsColumns holds the columns for the "meals" table.
 	MealsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -44,11 +66,13 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BfpDataPointsTable,
 		MealsTable,
 		UsersTable,
 	}
 )
 
 func init() {
+	BfpDataPointsTable.ForeignKeys[0].RefTable = UsersTable
 	MealsTable.ForeignKeys[0].RefTable = UsersTable
 }

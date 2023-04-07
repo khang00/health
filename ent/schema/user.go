@@ -23,5 +23,6 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("meals", Meal.Type),
+		edge.To("BFPs", BFPDataPoint.Type),
 	}
 }

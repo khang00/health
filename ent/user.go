@@ -28,9 +28,11 @@ type User struct {
 type UserEdges struct {
 	// Meals holds the value of the meals edge.
 	Meals []*Meal `json:"meals,omitempty"`
+	// BFPs holds the value of the BFPs edge.
+	BFPs []*BFPDataPoint `json:"BFPs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // MealsOrErr returns the Meals value or an error if the edge
@@ -40,6 +42,15 @@ func (e UserEdges) MealsOrErr() ([]*Meal, error) {
 		return e.Meals, nil
 	}
 	return nil, &NotLoadedError{edge: "meals"}
+}
+
+// BFPsOrErr returns the BFPs value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) BFPsOrErr() ([]*BFPDataPoint, error) {
+	if e.loadedTypes[1] {
+		return e.BFPs, nil
+	}
+	return nil, &NotLoadedError{edge: "BFPs"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -92,6 +103,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 // QueryMeals queries the "meals" edge of the User entity.
 func (u *User) QueryMeals() *MealQuery {
 	return NewUserClient(u.config).QueryMeals(u)
+}
+
+// QueryBFPs queries the "BFPs" edge of the User entity.
+func (u *User) QueryBFPs() *BFPDataPointQuery {
+	return NewUserClient(u.config).QueryBFPs(u)
 }
 
 // Update returns a builder for updating this User.
