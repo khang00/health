@@ -24,10 +24,10 @@ const (
 )
 
 type GetUserMealReq struct {
-	UserID    int           `json:"user_id"`
-	QueryType MealQueryType `json:"query_type"`
-	From      int64         `json:"from"`
-	To        int64         `json:"to"`
+	UserID    int           `json:"user_id" query:"user_id" validate:"required"`
+	QueryType MealQueryType `json:"query_type" query:"query_type" validate:"required"`
+	From      int64         `json:"from" query:"from" validate:"required"`
+	To        int64         `json:"to" query:"to" validate:"required"`
 }
 
 type GetUserMealResp struct {
@@ -35,12 +35,12 @@ type GetUserMealResp struct {
 }
 
 func (h *UserHandler) GetUserMeal(c echo.Context) error {
-	getMealReq := new(GetUserMealReq)
-	if err := c.Bind(getMealReq); err != nil {
+	getMealReq := GetUserMealReq{}
+	if err := c.Bind(&getMealReq); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.Validate(getMealReq); err != nil {
+	if err := c.Validate(&getMealReq); err != nil {
 		return err
 	}
 

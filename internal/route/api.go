@@ -9,8 +9,8 @@ import (
 func setUpAPIRoutes(g *echo.Group, storeClient *store.Client) {
 	user := g.Group("/user")
 	userHandler := handler.NewUserHandler(storeClient)
-	user.GET("/user/meal", userHandler.GetUserMeal)
-	user.GET("/user/body_fat_percentage`", userHandler.GetUserBFPByInterval)
+	user.GET("/meal", userHandler.GetUserMeal)
+	user.GET("/body_fat_percentage", userHandler.GetUserBFPByInterval)
 
 	g.GET("/articles", handler.GetArticles)
 }

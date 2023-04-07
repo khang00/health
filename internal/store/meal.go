@@ -14,8 +14,9 @@ func (c *Client) GetMealByInterval(ctx context.Context, userID int, from int64, 
 		Where(
 			meal.And(
 				meal.HasUserWith(user.ID(userID)),
-				meal.CreatedAtIn(
-					time.Unix(from, 0),
-					time.Unix(to, 0)))).
+				meal.CreatedAtGTE(time.Unix(from, 0)),
+				meal.CreatedAtLTE(time.Unix(to, 0)),
+			),
+		).
 		All(ctx)
 }

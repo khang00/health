@@ -21,6 +21,7 @@ func main() {
 
 	// Set up storage
 	storeClient := store.NewStoreClient()
+	defer storeClient.Closed()
 
 	// Setup Route
 	route.SetUpRoutes(e, storeClient)

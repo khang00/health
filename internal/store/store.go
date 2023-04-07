@@ -22,8 +22,6 @@ func NewStoreClient() *Client {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
 
-	defer entClient.Close()
-
 	// Run the auto migration tool.
 	err = entClient.Schema.Create(context.Background(),
 		schema.WithApplyHook(SeedDataWhenCreateTable(dialect.Postgres, user.Table, seedData)),
@@ -35,4 +33,8 @@ func NewStoreClient() *Client {
 	return &Client{
 		client: entClient,
 	}
+}
+
+func (c *Client) Closed() {
+	c.client.Close()
 }
