@@ -12,7 +12,7 @@ var (
 	AchievementsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "status", Type: field.TypeString, Default: "current"},
-		{Name: "thumbnail_img_url", Type: field.TypeString, Default: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Japanese_SilkyTofu_%28Kinugoshi_Tofu%29.JPG/440px-Japanese_SilkyTofu_%28Kinugoshi_Tofu%29.JPG"},
+		{Name: "thumbnail_img_url", Type: field.TypeString, Default: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxleHBsb3JlLWZlZWR8MXx8fGVufDB8fHx8&w=1000&q=80"},
 		{Name: "bfp_goal", Type: field.TypeFloat64},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "user_achievements", Type: field.TypeInt, Nullable: true},
@@ -30,6 +30,20 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// ArticlesColumns holds the columns for the "articles" table.
+	ArticlesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "thumbnail_img_url", Type: field.TypeString, Default: "https://media.istockphoto.com/id/1316145932/photo/table-top-view-of-spicy-food.jpg?b=1&s=170667a&w=0&k=20&c=P3jIQq8gVqlXjd4kP2OrXYyzqEXSWCwwYtwrd81psDY="},
+		{Name: "title", Type: field.TypeString},
+		{Name: "content", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// ArticlesTable holds the schema information for the "articles" table.
+	ArticlesTable = &schema.Table{
+		Name:       "articles",
+		Columns:    ArticlesColumns,
+		PrimaryKey: []*schema.Column{ArticlesColumns[0]},
 	}
 	// BfpDataPointsColumns holds the columns for the "bfp_data_points" table.
 	BfpDataPointsColumns = []*schema.Column{
@@ -75,6 +89,27 @@ var (
 			},
 		},
 	}
+	// TagsColumns holds the columns for the "tags" table.
+	TagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "tag_name", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "article_tags", Type: field.TypeInt, Nullable: true},
+	}
+	// TagsTable holds the schema information for the "tags" table.
+	TagsTable = &schema.Table{
+		Name:       "tags",
+		Columns:    TagsColumns,
+		PrimaryKey: []*schema.Column{TagsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tags_articles_tags",
+				Columns:    []*schema.Column{TagsColumns[3]},
+				RefColumns: []*schema.Column{ArticlesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -90,8 +125,10 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AchievementsTable,
+		ArticlesTable,
 		BfpDataPointsTable,
 		MealsTable,
+		TagsTable,
 		UsersTable,
 	}
 )
@@ -100,4 +137,5 @@ func init() {
 	AchievementsTable.ForeignKeys[0].RefTable = UsersTable
 	BfpDataPointsTable.ForeignKeys[0].RefTable = UsersTable
 	MealsTable.ForeignKeys[0].RefTable = UsersTable
+	TagsTable.ForeignKeys[0].RefTable = ArticlesTable
 }

@@ -14,10 +14,14 @@ type Tx struct {
 	config
 	// Achievement is the client for interacting with the Achievement builders.
 	Achievement *AchievementClient
+	// Article is the client for interacting with the Article builders.
+	Article *ArticleClient
 	// BFPDataPoint is the client for interacting with the BFPDataPoint builders.
 	BFPDataPoint *BFPDataPointClient
 	// Meal is the client for interacting with the Meal builders.
 	Meal *MealClient
+	// Tag is the client for interacting with the Tag builders.
+	Tag *TagClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -152,8 +156,10 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Achievement = NewAchievementClient(tx.config)
+	tx.Article = NewArticleClient(tx.config)
 	tx.BFPDataPoint = NewBFPDataPointClient(tx.config)
 	tx.Meal = NewMealClient(tx.config)
+	tx.Tag = NewTagClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

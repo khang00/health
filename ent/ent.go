@@ -12,8 +12,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/khang00/health/ent/achievement"
+	"github.com/khang00/health/ent/article"
 	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
+	"github.com/khang00/health/ent/tag"
 	"github.com/khang00/health/ent/user"
 )
 
@@ -69,8 +71,10 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		achievement.Table:  achievement.ValidColumn,
+		article.Table:      article.ValidColumn,
 		bfpdatapoint.Table: bfpdatapoint.ValidColumn,
 		meal.Table:         meal.ValidColumn,
+		tag.Table:          tag.ValidColumn,
 		user.Table:         user.ValidColumn,
 	}
 	check, ok := checks[table]

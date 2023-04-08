@@ -6,17 +6,10 @@ import (
 	"net/http"
 )
 
-type MealQueryType = string
-
-const (
-	MealQueryByInterval MealQueryType = "MEAL_QUERY_BY_INTERVAL"
-)
-
 type GetUserMealReq struct {
-	UserID    int           `json:"user_id" query:"user_id" validate:"required"`
-	QueryType MealQueryType `json:"query_type" query:"query_type" validate:"required"`
-	From      int64         `json:"from" query:"from" validate:"required"`
-	To        int64         `json:"to" query:"to" validate:"required"`
+	UserID int   `json:"user_id" query:"user_id" validate:"required"`
+	From   int64 `json:"from" query:"from" validate:"required"`
+	To     int64 `json:"to" query:"to" validate:"required"`
 }
 
 type GetUserMealResp struct {

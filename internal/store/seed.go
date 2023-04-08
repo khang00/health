@@ -82,6 +82,39 @@ func seedData(ctx context.Context, client *ent.Client) error {
 		return err
 	}
 
+	articleSize := 12
+	articleCreates := make([]*ent.ArticleCreate, articleSize)
+	for i := range articleCreates {
+		articleCreates[i] = client.Article.Create().
+			SetTitle("Neque porro quisquam est qui dolorem ipsum").
+			SetContent("Neque porro quisquam est qui dolorem ipsum")
+	}
+
+	articles, err := client.Article.CreateBulk(
+		articleCreates...,
+	).Save(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	articleTagsCreates := make([]*ent.TagCreate, articleSize)
+	for i := range articleTagsCreates {
+		articleTagsCreates[i] = client.Tag.Create().
+			SetTagName("Neque porro").
+			SetArticle(articles[i])
+	}
+
+	err = client.Tag.CreateBulk(articleTagsCreates...).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = client.Tag.CreateBulk(articleTagsCreates...).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

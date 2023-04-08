@@ -21,6 +21,18 @@ func (f AchievementFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AchievementMutation", m)
 }
 
+// The ArticleFunc type is an adapter to allow the use of ordinary
+// function as Article mutator.
+type ArticleFunc func(context.Context, *ent.ArticleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ArticleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ArticleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ArticleMutation", m)
+}
+
 // The BFPDataPointFunc type is an adapter to allow the use of ordinary
 // function as BFPDataPoint mutator.
 type BFPDataPointFunc func(context.Context, *ent.BFPDataPointMutation) (ent.Value, error)
@@ -43,6 +55,18 @@ func (f MealFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MealMutation", m)
+}
+
+// The TagFunc type is an adapter to allow the use of ordinary
+// function as Tag mutator.
+type TagFunc func(context.Context, *ent.TagMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TagMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TagMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

@@ -33,17 +33,17 @@ type GetUserResponse struct {
 }
 
 func (h *handler) GetUser(c echo.Context) error {
-	geUserReq := GetUserReq{}
-	if err := c.Bind(&geUserReq); err != nil {
+	getUserReq := GetUserReq{}
+	if err := c.Bind(&getUserReq); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.Validate(&geUserReq); err != nil {
+	if err := c.Validate(&getUserReq); err != nil {
 		return err
 	}
 
 	reqCtx := c.Request().Context()
-	user, err := h.store.GetUserWithAchievement(reqCtx, geUserReq.UserName)
+	user, err := h.store.GetUserWithAchievement(reqCtx, getUserReq.UserName)
 	if err != nil {
 		return err
 	}

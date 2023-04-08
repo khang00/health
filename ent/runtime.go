@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/khang00/health/ent/achievement"
+	"github.com/khang00/health/ent/article"
 	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/schema"
+	"github.com/khang00/health/ent/tag"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -33,6 +35,20 @@ func init() {
 	achievementDescCreatedAt := achievementFields[3].Descriptor()
 	// achievement.DefaultCreatedAt holds the default value on creation for the created_at field.
 	achievement.DefaultCreatedAt = achievementDescCreatedAt.Default.(time.Time)
+	articleFields := schema.Article{}.Fields()
+	_ = articleFields
+	// articleDescThumbnailImgURL is the schema descriptor for thumbnail_img_url field.
+	articleDescThumbnailImgURL := articleFields[0].Descriptor()
+	// article.DefaultThumbnailImgURL holds the default value on creation for the thumbnail_img_url field.
+	article.DefaultThumbnailImgURL = articleDescThumbnailImgURL.Default.(string)
+	// articleDescTitle is the schema descriptor for title field.
+	articleDescTitle := articleFields[1].Descriptor()
+	// article.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	article.TitleValidator = articleDescTitle.Validators[0].(func(string) error)
+	// articleDescCreatedAt is the schema descriptor for created_at field.
+	articleDescCreatedAt := articleFields[3].Descriptor()
+	// article.DefaultCreatedAt holds the default value on creation for the created_at field.
+	article.DefaultCreatedAt = articleDescCreatedAt.Default.(time.Time)
 	bfpdatapointFields := schema.BFPDataPoint{}.Fields()
 	_ = bfpdatapointFields
 	// bfpdatapointDescFatPercentage is the schema descriptor for fat_percentage field.
@@ -61,4 +77,14 @@ func init() {
 	mealDescCreatedAt := mealFields[2].Descriptor()
 	// meal.DefaultCreatedAt holds the default value on creation for the created_at field.
 	meal.DefaultCreatedAt = mealDescCreatedAt.Default.(time.Time)
+	tagFields := schema.Tag{}.Fields()
+	_ = tagFields
+	// tagDescTagName is the schema descriptor for tag_name field.
+	tagDescTagName := tagFields[0].Descriptor()
+	// tag.TagNameValidator is a validator for the "tag_name" field. It is called by the builders before save.
+	tag.TagNameValidator = tagDescTagName.Validators[0].(func(string) error)
+	// tagDescCreatedAt is the schema descriptor for created_at field.
+	tagDescCreatedAt := tagFields[1].Descriptor()
+	// tag.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tag.DefaultCreatedAt = tagDescCreatedAt.Default.(time.Time)
 }
