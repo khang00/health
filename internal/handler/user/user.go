@@ -14,10 +14,10 @@ type Handler interface {
 }
 
 type handler struct {
-	store *store.Client
+	store store.Client
 }
 
-func NewUserHandler(store *store.Client) Handler {
+func NewUserHandler(store store.Client) Handler {
 	return &handler{
 		store: store,
 	}

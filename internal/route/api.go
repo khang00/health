@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func setUpAPIRoutes(g *echo.Group, storeClient *store.Client) {
+func setUpAPIRoutes(g *echo.Group, storeClient store.Client) {
 
 	userHandler := user.NewUserHandler(storeClient)
 	userGroup := g.Group("/user")

@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func SetUpRoutes(e *echo.Echo, storeClient *store.Client) {
+func SetUpRoutes(e *echo.Echo, storeClient store.Client) {
 	setUpHealthRoutes(e)
 
 	SetUpRequestValidator(e)

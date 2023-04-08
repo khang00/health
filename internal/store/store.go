@@ -18,6 +18,8 @@ type Client interface {
 
 	GetRecentArticle(ctx context.Context, limit int) ([]*ent.Article, error)
 	GetRecommendationArticle(ctx context.Context, limit int) ([]*ent.Article, error)
+
+	Closed()
 }
 
 type client struct {
