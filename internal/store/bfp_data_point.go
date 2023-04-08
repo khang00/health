@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (c *Client) GetBFPDataPointByInterval(ctx context.Context, userID int, from int64, to int64) ([]*ent.BFPDataPoint, error) {
+func (c *client) GetBFPDataPointByInterval(ctx context.Context, userID int, from int64, to int64) ([]*ent.BFPDataPoint, error) {
 	return c.client.BFPDataPoint.
 		Query().
 		Where(

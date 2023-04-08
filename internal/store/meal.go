@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (c *Client) GetMealByInterval(ctx context.Context, userID int, from int64, to int64) ([]*ent.Meal, error) {
+func (c *client) GetMealByInterval(ctx context.Context, userID int, from int64, to int64) ([]*ent.Meal, error) {
 	return c.client.Meal.
 		Query().
 		Where(

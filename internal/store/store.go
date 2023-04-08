@@ -10,11 +10,21 @@ import (
 	"log"
 )
 
-type Client struct {
+type Client interface {
+	GetUserWithAchievement(ctx context.Context, userName string) (*ent.User, error)
+
+	GetMealByInterval(ctx context.Context, userID int, from int64, to int64) ([]*ent.Meal, error)
+	GetBFPDataPointByInterval(ctx context.Context, userID int, from int64, to int64) ([]*ent.BFPDataPoint, error)
+
+	GetRecentArticle(ctx context.Context, limit int) ([]*ent.Article, error)
+	GetRecommendationArticle(ctx context.Context, limit int) ([]*ent.Article, error)
+}
+
+type client struct {
 	client *ent.Client
 }
 
-func NewStoreClient() *Client {
+func NewStoreClient() Client {
 	entClient, err := ent.Open("postgres",
 		"sslmode=disable host=localhost port=5432 user=postgres dbname=health password=",
 	)
@@ -30,11 +40,11 @@ func NewStoreClient() *Client {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 
-	return &Client{
+	return &client{
 		client: entClient,
 	}
 }
 
-func (c *Client) Closed() {
+func (c *client) Closed() {
 	c.client.Close()
 }

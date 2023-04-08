@@ -6,7 +6,7 @@ import (
 	"github.com/khang00/health/ent/user"
 )
 
-func (c *Client) GetUserWithAchievement(ctx context.Context, userName string) (*ent.User, error) {
+func (c *client) GetUserWithAchievement(ctx context.Context, userName string) (*ent.User, error) {
 	return c.client.User.
 		Query().
 		Where(
