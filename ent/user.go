@@ -30,9 +30,11 @@ type UserEdges struct {
 	Meals []*Meal `json:"meals,omitempty"`
 	// BFPs holds the value of the BFPs edge.
 	BFPs []*BFPDataPoint `json:"BFPs,omitempty"`
+	// Achievements holds the value of the achievements edge.
+	Achievements []*Achievement `json:"achievements,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // MealsOrErr returns the Meals value or an error if the edge
@@ -51,6 +53,15 @@ func (e UserEdges) BFPsOrErr() ([]*BFPDataPoint, error) {
 		return e.BFPs, nil
 	}
 	return nil, &NotLoadedError{edge: "BFPs"}
+}
+
+// AchievementsOrErr returns the Achievements value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AchievementsOrErr() ([]*Achievement, error) {
+	if e.loadedTypes[2] {
+		return e.Achievements, nil
+	}
+	return nil, &NotLoadedError{edge: "achievements"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -108,6 +119,11 @@ func (u *User) QueryMeals() *MealQuery {
 // QueryBFPs queries the "BFPs" edge of the User entity.
 func (u *User) QueryBFPs() *BFPDataPointQuery {
 	return NewUserClient(u.config).QueryBFPs(u)
+}
+
+// QueryAchievements queries the "achievements" edge of the User entity.
+func (u *User) QueryAchievements() *AchievementQuery {
+	return NewUserClient(u.config).QueryAchievements(u)
 }
 
 // Update returns a builder for updating this User.

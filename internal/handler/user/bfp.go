@@ -16,7 +16,7 @@ type GetUserBFPResp struct {
 	DataPoints []*ent.BFPDataPoint
 }
 
-func (h *Handler) GetUserBFPByInterval(c echo.Context) error {
+func (h *handler) GetUserBFPByInterval(c echo.Context) error {
 	getUserBFPReq := GetUserBFPReq{}
 	if err := c.Bind(&getUserBFPReq); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

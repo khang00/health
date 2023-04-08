@@ -20,6 +20,14 @@ func seedData(ctx context.Context, client *ent.Client) error {
 		return err
 	}
 
+	err = client.Achievement.Create().
+		SetUserID(1).
+		SetBfpGoal(0.75).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+
 	now := time.Now()
 	err = client.Meal.CreateBulk(
 		client.Meal.Create().

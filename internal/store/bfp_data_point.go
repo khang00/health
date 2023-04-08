@@ -17,6 +17,6 @@ func (c *Client) GetBFPDataPointByInterval(ctx context.Context, userID int, from
 				bfpdatapoint.CreatedAtGTE(time.Unix(from, 0)),
 				bfpdatapoint.CreatedAtLTE(time.Unix(to, 0)),
 			),
-		).
+		).Order(ent.Desc(bfpdatapoint.FieldCreatedAt)).
 		All(ctx)
 }

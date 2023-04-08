@@ -8,6 +8,29 @@ import (
 )
 
 var (
+	// AchievementsColumns holds the columns for the "achievements" table.
+	AchievementsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "status", Type: field.TypeString, Default: "current"},
+		{Name: "thumbnail_img_url", Type: field.TypeString, Default: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Japanese_SilkyTofu_%28Kinugoshi_Tofu%29.JPG/440px-Japanese_SilkyTofu_%28Kinugoshi_Tofu%29.JPG"},
+		{Name: "bfp_goal", Type: field.TypeFloat64},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "user_achievements", Type: field.TypeInt, Nullable: true},
+	}
+	// AchievementsTable holds the schema information for the "achievements" table.
+	AchievementsTable = &schema.Table{
+		Name:       "achievements",
+		Columns:    AchievementsColumns,
+		PrimaryKey: []*schema.Column{AchievementsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "achievements_users_achievements",
+				Columns:    []*schema.Column{AchievementsColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// BfpDataPointsColumns holds the columns for the "bfp_data_points" table.
 	BfpDataPointsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -55,7 +78,7 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_name", Type: field.TypeString},
+		{Name: "user_name", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -66,6 +89,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AchievementsTable,
 		BfpDataPointsTable,
 		MealsTable,
 		UsersTable,
@@ -73,6 +97,7 @@ var (
 )
 
 func init() {
+	AchievementsTable.ForeignKeys[0].RefTable = UsersTable
 	BfpDataPointsTable.ForeignKeys[0].RefTable = UsersTable
 	MealsTable.ForeignKeys[0].RefTable = UsersTable
 }

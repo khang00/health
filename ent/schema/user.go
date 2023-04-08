@@ -14,7 +14,7 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("user_name"),
+		field.String("user_name").Unique(),
 		field.String("password"),
 	}
 }
@@ -24,5 +24,6 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("meals", Meal.Type),
 		edge.To("BFPs", BFPDataPoint.Type),
+		edge.To("achievements", Achievement.Type),
 	}
 }

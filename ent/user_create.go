@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khang00/health/ent/achievement"
 	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/user"
@@ -61,6 +62,21 @@ func (uc *UserCreate) AddBFPs(b ...*BFPDataPoint) *UserCreate {
 		ids[i] = b[i].ID
 	}
 	return uc.AddBFPIDs(ids...)
+}
+
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by IDs.
+func (uc *UserCreate) AddAchievementIDs(ids ...int) *UserCreate {
+	uc.mutation.AddAchievementIDs(ids...)
+	return uc
+}
+
+// AddAchievements adds the "achievements" edges to the Achievement entity.
+func (uc *UserCreate) AddAchievements(a ...*Achievement) *UserCreate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uc.AddAchievementIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -162,6 +178,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(bfpdatapoint.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AchievementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AchievementsTable,
+			Columns: []string{user.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/khang00/health/ent/achievement"
 	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/predicate"
@@ -26,10 +27,602 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeAchievement  = "Achievement"
 	TypeBFPDataPoint = "BFPDataPoint"
 	TypeMeal         = "Meal"
 	TypeUser         = "User"
 )
+
+// AchievementMutation represents an operation that mutates the Achievement nodes in the graph.
+type AchievementMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	status            *string
+	thumbnail_img_url *string
+	bfp_goal          *float64
+	addbfp_goal       *float64
+	created_at        *time.Time
+	clearedFields     map[string]struct{}
+	user              *int
+	cleareduser       bool
+	done              bool
+	oldValue          func(context.Context) (*Achievement, error)
+	predicates        []predicate.Achievement
+}
+
+var _ ent.Mutation = (*AchievementMutation)(nil)
+
+// achievementOption allows management of the mutation configuration using functional options.
+type achievementOption func(*AchievementMutation)
+
+// newAchievementMutation creates new mutation for the Achievement entity.
+func newAchievementMutation(c config, op Op, opts ...achievementOption) *AchievementMutation {
+	m := &AchievementMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAchievement,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAchievementID sets the ID field of the mutation.
+func withAchievementID(id int) achievementOption {
+	return func(m *AchievementMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Achievement
+		)
+		m.oldValue = func(ctx context.Context) (*Achievement, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Achievement.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAchievement sets the old Achievement of the mutation.
+func withAchievement(node *Achievement) achievementOption {
+	return func(m *AchievementMutation) {
+		m.oldValue = func(context.Context) (*Achievement, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AchievementMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AchievementMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AchievementMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AchievementMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Achievement.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetStatus sets the "status" field.
+func (m *AchievementMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AchievementMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Achievement entity.
+// If the Achievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AchievementMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetThumbnailImgURL sets the "thumbnail_img_url" field.
+func (m *AchievementMutation) SetThumbnailImgURL(s string) {
+	m.thumbnail_img_url = &s
+}
+
+// ThumbnailImgURL returns the value of the "thumbnail_img_url" field in the mutation.
+func (m *AchievementMutation) ThumbnailImgURL() (r string, exists bool) {
+	v := m.thumbnail_img_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldThumbnailImgURL returns the old "thumbnail_img_url" field's value of the Achievement entity.
+// If the Achievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementMutation) OldThumbnailImgURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldThumbnailImgURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldThumbnailImgURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldThumbnailImgURL: %w", err)
+	}
+	return oldValue.ThumbnailImgURL, nil
+}
+
+// ResetThumbnailImgURL resets all changes to the "thumbnail_img_url" field.
+func (m *AchievementMutation) ResetThumbnailImgURL() {
+	m.thumbnail_img_url = nil
+}
+
+// SetBfpGoal sets the "bfp_goal" field.
+func (m *AchievementMutation) SetBfpGoal(f float64) {
+	m.bfp_goal = &f
+	m.addbfp_goal = nil
+}
+
+// BfpGoal returns the value of the "bfp_goal" field in the mutation.
+func (m *AchievementMutation) BfpGoal() (r float64, exists bool) {
+	v := m.bfp_goal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBfpGoal returns the old "bfp_goal" field's value of the Achievement entity.
+// If the Achievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementMutation) OldBfpGoal(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBfpGoal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBfpGoal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBfpGoal: %w", err)
+	}
+	return oldValue.BfpGoal, nil
+}
+
+// AddBfpGoal adds f to the "bfp_goal" field.
+func (m *AchievementMutation) AddBfpGoal(f float64) {
+	if m.addbfp_goal != nil {
+		*m.addbfp_goal += f
+	} else {
+		m.addbfp_goal = &f
+	}
+}
+
+// AddedBfpGoal returns the value that was added to the "bfp_goal" field in this mutation.
+func (m *AchievementMutation) AddedBfpGoal() (r float64, exists bool) {
+	v := m.addbfp_goal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBfpGoal resets all changes to the "bfp_goal" field.
+func (m *AchievementMutation) ResetBfpGoal() {
+	m.bfp_goal = nil
+	m.addbfp_goal = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AchievementMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AchievementMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Achievement entity.
+// If the Achievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AchievementMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *AchievementMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *AchievementMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *AchievementMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *AchievementMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *AchievementMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *AchievementMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the AchievementMutation builder.
+func (m *AchievementMutation) Where(ps ...predicate.Achievement) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AchievementMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AchievementMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Achievement, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AchievementMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AchievementMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Achievement).
+func (m *AchievementMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AchievementMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.status != nil {
+		fields = append(fields, achievement.FieldStatus)
+	}
+	if m.thumbnail_img_url != nil {
+		fields = append(fields, achievement.FieldThumbnailImgURL)
+	}
+	if m.bfp_goal != nil {
+		fields = append(fields, achievement.FieldBfpGoal)
+	}
+	if m.created_at != nil {
+		fields = append(fields, achievement.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AchievementMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case achievement.FieldStatus:
+		return m.Status()
+	case achievement.FieldThumbnailImgURL:
+		return m.ThumbnailImgURL()
+	case achievement.FieldBfpGoal:
+		return m.BfpGoal()
+	case achievement.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AchievementMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case achievement.FieldStatus:
+		return m.OldStatus(ctx)
+	case achievement.FieldThumbnailImgURL:
+		return m.OldThumbnailImgURL(ctx)
+	case achievement.FieldBfpGoal:
+		return m.OldBfpGoal(ctx)
+	case achievement.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Achievement field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AchievementMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case achievement.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case achievement.FieldThumbnailImgURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetThumbnailImgURL(v)
+		return nil
+	case achievement.FieldBfpGoal:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBfpGoal(v)
+		return nil
+	case achievement.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Achievement field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AchievementMutation) AddedFields() []string {
+	var fields []string
+	if m.addbfp_goal != nil {
+		fields = append(fields, achievement.FieldBfpGoal)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AchievementMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case achievement.FieldBfpGoal:
+		return m.AddedBfpGoal()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AchievementMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case achievement.FieldBfpGoal:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBfpGoal(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Achievement numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AchievementMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AchievementMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AchievementMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Achievement nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AchievementMutation) ResetField(name string) error {
+	switch name {
+	case achievement.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case achievement.FieldThumbnailImgURL:
+		m.ResetThumbnailImgURL()
+		return nil
+	case achievement.FieldBfpGoal:
+		m.ResetBfpGoal()
+		return nil
+	case achievement.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Achievement field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AchievementMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, achievement.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AchievementMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case achievement.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AchievementMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AchievementMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AchievementMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, achievement.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AchievementMutation) EdgeCleared(name string) bool {
+	switch name {
+	case achievement.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AchievementMutation) ClearEdge(name string) error {
+	switch name {
+	case achievement.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown Achievement unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AchievementMutation) ResetEdge(name string) error {
+	switch name {
+	case achievement.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown Achievement edge %s", name)
+}
 
 // BFPDataPointMutation represents an operation that mutates the BFPDataPoint nodes in the graph.
 type BFPDataPointMutation struct {
@@ -1105,21 +1698,24 @@ func (m *MealMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	user_name     *string
-	password      *string
-	clearedFields map[string]struct{}
-	meals         map[int]struct{}
-	removedmeals  map[int]struct{}
-	clearedmeals  bool
-	_BFPs         map[int]struct{}
-	removed_BFPs  map[int]struct{}
-	cleared_BFPs  bool
-	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	op                  Op
+	typ                 string
+	id                  *int
+	user_name           *string
+	password            *string
+	clearedFields       map[string]struct{}
+	meals               map[int]struct{}
+	removedmeals        map[int]struct{}
+	clearedmeals        bool
+	_BFPs               map[int]struct{}
+	removed_BFPs        map[int]struct{}
+	cleared_BFPs        bool
+	achievements        map[int]struct{}
+	removedachievements map[int]struct{}
+	clearedachievements bool
+	done                bool
+	oldValue            func(context.Context) (*User, error)
+	predicates          []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1400,6 +1996,60 @@ func (m *UserMutation) ResetBFPs() {
 	m.removed_BFPs = nil
 }
 
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by ids.
+func (m *UserMutation) AddAchievementIDs(ids ...int) {
+	if m.achievements == nil {
+		m.achievements = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.achievements[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAchievements clears the "achievements" edge to the Achievement entity.
+func (m *UserMutation) ClearAchievements() {
+	m.clearedachievements = true
+}
+
+// AchievementsCleared reports if the "achievements" edge to the Achievement entity was cleared.
+func (m *UserMutation) AchievementsCleared() bool {
+	return m.clearedachievements
+}
+
+// RemoveAchievementIDs removes the "achievements" edge to the Achievement entity by IDs.
+func (m *UserMutation) RemoveAchievementIDs(ids ...int) {
+	if m.removedachievements == nil {
+		m.removedachievements = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.achievements, ids[i])
+		m.removedachievements[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAchievements returns the removed IDs of the "achievements" edge to the Achievement entity.
+func (m *UserMutation) RemovedAchievementsIDs() (ids []int) {
+	for id := range m.removedachievements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AchievementsIDs returns the "achievements" edge IDs in the mutation.
+func (m *UserMutation) AchievementsIDs() (ids []int) {
+	for id := range m.achievements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAchievements resets all changes to the "achievements" edge.
+func (m *UserMutation) ResetAchievements() {
+	m.achievements = nil
+	m.clearedachievements = false
+	m.removedachievements = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -1550,12 +2200,15 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.meals != nil {
 		edges = append(edges, user.EdgeMeals)
 	}
 	if m._BFPs != nil {
 		edges = append(edges, user.EdgeBFPs)
+	}
+	if m.achievements != nil {
+		edges = append(edges, user.EdgeAchievements)
 	}
 	return edges
 }
@@ -1576,18 +2229,27 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeAchievements:
+		ids := make([]ent.Value, 0, len(m.achievements))
+		for id := range m.achievements {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedmeals != nil {
 		edges = append(edges, user.EdgeMeals)
 	}
 	if m.removed_BFPs != nil {
 		edges = append(edges, user.EdgeBFPs)
+	}
+	if m.removedachievements != nil {
+		edges = append(edges, user.EdgeAchievements)
 	}
 	return edges
 }
@@ -1608,18 +2270,27 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeAchievements:
+		ids := make([]ent.Value, 0, len(m.removedachievements))
+		for id := range m.removedachievements {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedmeals {
 		edges = append(edges, user.EdgeMeals)
 	}
 	if m.cleared_BFPs {
 		edges = append(edges, user.EdgeBFPs)
+	}
+	if m.clearedachievements {
+		edges = append(edges, user.EdgeAchievements)
 	}
 	return edges
 }
@@ -1632,6 +2303,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedmeals
 	case user.EdgeBFPs:
 		return m.cleared_BFPs
+	case user.EdgeAchievements:
+		return m.clearedachievements
 	}
 	return false
 }
@@ -1653,6 +2326,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeBFPs:
 		m.ResetBFPs()
+		return nil
+	case user.EdgeAchievements:
+		m.ResetAchievements()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

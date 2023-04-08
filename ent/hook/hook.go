@@ -9,6 +9,18 @@ import (
 	"github.com/khang00/health/ent"
 )
 
+// The AchievementFunc type is an adapter to allow the use of ordinary
+// function as Achievement mutator.
+type AchievementFunc func(context.Context, *ent.AchievementMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AchievementFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AchievementMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AchievementMutation", m)
+}
+
 // The BFPDataPointFunc type is an adapter to allow the use of ordinary
 // function as BFPDataPoint mutator.
 type BFPDataPointFunc func(context.Context, *ent.BFPDataPointMutation) (ent.Value, error)

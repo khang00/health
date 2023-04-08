@@ -15,6 +15,8 @@ const (
 	EdgeMeals = "meals"
 	// EdgeBFPs holds the string denoting the bfps edge name in mutations.
 	EdgeBFPs = "BFPs"
+	// EdgeAchievements holds the string denoting the achievements edge name in mutations.
+	EdgeAchievements = "achievements"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MealsTable is the table that holds the meals relation/edge.
@@ -31,6 +33,13 @@ const (
 	BFPsInverseTable = "bfp_data_points"
 	// BFPsColumn is the table column denoting the BFPs relation/edge.
 	BFPsColumn = "user_bf_ps"
+	// AchievementsTable is the table that holds the achievements relation/edge.
+	AchievementsTable = "achievements"
+	// AchievementsInverseTable is the table name for the Achievement entity.
+	// It exists in this package in order to avoid circular dependency with the "achievement" package.
+	AchievementsInverseTable = "achievements"
+	// AchievementsColumn is the table column denoting the achievements relation/edge.
+	AchievementsColumn = "user_achievements"
 )
 
 // Columns holds all SQL columns for user fields.

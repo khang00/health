@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/khang00/health/ent/achievement"
 	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/schema"
@@ -14,6 +15,24 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	achievementFields := schema.Achievement{}.Fields()
+	_ = achievementFields
+	// achievementDescStatus is the schema descriptor for status field.
+	achievementDescStatus := achievementFields[0].Descriptor()
+	// achievement.DefaultStatus holds the default value on creation for the status field.
+	achievement.DefaultStatus = achievementDescStatus.Default.(string)
+	// achievementDescThumbnailImgURL is the schema descriptor for thumbnail_img_url field.
+	achievementDescThumbnailImgURL := achievementFields[1].Descriptor()
+	// achievement.DefaultThumbnailImgURL holds the default value on creation for the thumbnail_img_url field.
+	achievement.DefaultThumbnailImgURL = achievementDescThumbnailImgURL.Default.(string)
+	// achievementDescBfpGoal is the schema descriptor for bfp_goal field.
+	achievementDescBfpGoal := achievementFields[2].Descriptor()
+	// achievement.BfpGoalValidator is a validator for the "bfp_goal" field. It is called by the builders before save.
+	achievement.BfpGoalValidator = achievementDescBfpGoal.Validators[0].(func(float64) error)
+	// achievementDescCreatedAt is the schema descriptor for created_at field.
+	achievementDescCreatedAt := achievementFields[3].Descriptor()
+	// achievement.DefaultCreatedAt holds the default value on creation for the created_at field.
+	achievement.DefaultCreatedAt = achievementDescCreatedAt.Default.(time.Time)
 	bfpdatapointFields := schema.BFPDataPoint{}.Fields()
 	_ = bfpdatapointFields
 	// bfpdatapointDescFatPercentage is the schema descriptor for fat_percentage field.

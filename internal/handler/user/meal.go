@@ -23,7 +23,7 @@ type GetUserMealResp struct {
 	Meals []*ent.Meal `json:"meals"`
 }
 
-func (h *Handler) GetUserMeal(c echo.Context) error {
+func (h *handler) GetUserMeal(c echo.Context) error {
 	getMealReq := GetUserMealReq{}
 	if err := c.Bind(&getMealReq); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

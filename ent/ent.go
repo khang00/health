@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/khang00/health/ent/achievement"
 	"github.com/khang00/health/ent/bfpdatapoint"
 	"github.com/khang00/health/ent/meal"
 	"github.com/khang00/health/ent/user"
@@ -67,6 +68,7 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
+		achievement.Table:  achievement.ValidColumn,
 		bfpdatapoint.Table: bfpdatapoint.ValidColumn,
 		meal.Table:         meal.ValidColumn,
 		user.Table:         user.ValidColumn,
