@@ -1,8 +1,25 @@
 version: "3.9"
 services:
-  health-backend:
-    container_name: backend
+  backend:
+    container_name: health-backend
     build:
       context: ./backend
     ports:
       - "3000:3000"
+
+  db:
+    image: postgres:15
+    container_name: health-db
+    environment:
+      POSTGRES_DB: health
+      POSTGRES_USER: health
+      POSTGRES_PASSWORD: health
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    volumes:
+      - db_health_home:/var/lib/postgresql/data
+
+volumes:
+  db_health_home:
+    external: false

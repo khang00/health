@@ -28,7 +28,7 @@ type client struct {
 
 func NewStoreClient() Client {
 	entClient, err := ent.Open("postgres",
-		"sslmode=disable host=localhost port=5432 user=postgres dbname=health password=",
+		"sslmode=disable host=db port=5432 user=health dbname=health password=health",
 	)
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
